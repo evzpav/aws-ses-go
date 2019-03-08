@@ -1,4 +1,4 @@
-package ses
+package email
 
 import (
 	"log"

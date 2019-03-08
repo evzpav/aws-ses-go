@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/evzpav/aws-ses-go/ses"
+	"github.com/evzpav/aws-ses-go/email"
 	"github.com/joho/godotenv"
 )
 
@@ -34,8 +34,8 @@ func main() {
 		"supportEmail": senderEmail,
 	}
 
-	s := ses.NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey)
-	var emailData = ses.EmailData{
+	s := email.NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey)
+	var emailData = email.EmailData{
 		From:         senderEmail,
 		To:           []string{receiverEmail},
 		ReplyTo:      []string{"noreply@domain.com"},
