@@ -11,76 +11,72 @@ import (
 	"github.com/aws/aws-sdk-go/service/ses"
 )
 
-type Request struct {
+type Client struct {
 	awsRegion          string
 	awsAccessKeyId     string
 	awsSecretAccessKey string
-	from               string
-	to                 []string
-	subject            string
-	body               string
-	text               string
-	html               string
-	replyTo            []string
 }
 
-func NewRequest(sender, noReplyEmail string, to []string, subject string) *Request {
-	return &Request{
-		from:    sender,
-		to:      to,
-		subject: subject,
-		replyTo: []string{noReplyEmail},
+type EmailData struct {
+	From         string
+	To           []string
+	Subject      string
+	Body         string
+	Text         string
+	HTML         string
+	ReplyTo      []string
+	TemplateName string
+	TemplateVars interface{}
+}
+
+func NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey string) *Client {
+	return &Client{
+		awsRegion:          awsRegion,
+		awsAccessKeyId:     awsAccessKeyId,
+		awsSecretAccessKey: awsSecretAccessKey,
 	}
 }
 
-func (r *Request) SetAwsCredentials(awsRegion, awsAccessKeyId, awsSecretAccessKey string) *Request {
-	r.awsRegion = awsRegion
-	r.awsAccessKeyId = awsAccessKeyId
-	r.awsSecretAccessKey = awsSecretAccessKey
-	return r
+func (s *Client) Send(e EmailData) error {
+	err := e.parseTemplate()
+	if err != nil {
+		log.Printf("Could not parse email template: %s\n", e.TemplateName)
+		return err
+	}
+	err = s.sendMail(&e)
+	if err != nil {
+		log.Printf("Failed to send '%s' the email to %s\n", e.Subject, e.To)
+		return err
+	}
+	log.Printf("Email '%s' has been sent to %s\n", e.Subject, e.To)
+	return nil
 }
 
-func (r *Request) parseTemplate(fileName string, data interface{}) error {
-	filePath := fileName
-	t, err := template.ParseFiles(filePath)
+func (e *EmailData) parseTemplate() error {
+	t, err := template.ParseFiles(e.TemplateName)
 	if err != nil {
 		return err
 	}
 	buffer := new(bytes.Buffer)
-	if err = t.Execute(buffer, data); err != nil {
+	if err = t.Execute(buffer, e.TemplateVars); err != nil {
 		return err
 	}
-	r.html = buffer.String()
+	e.HTML = buffer.String()
 	return nil
 }
 
-func (r *Request) Send(templateName string, items interface{}) error {
-	err := r.parseTemplate(templateName, items)
-	if err != nil {
-		log.Printf("Could not parse email template: %s\n", templateName)
-		return err
-	}
-	err = r.sendMail()
-	if err != nil {
-		log.Printf("Failed to send '%s' the email to %s\n", r.subject, r.to)
-		return err
-	}
-	log.Printf("Email '%s' has been sent to %s\n", r.subject, r.to)
-	return nil
-}
-
-func (r *Request) newSesClient() *SesClient {
+func (s *Client) newSesClient() *SesClient {
 	return New(ses.New(session.New(&aws.Config{
-		Region: aws.String(r.awsRegion),
+		Region: aws.String(s.awsRegion),
 		Credentials: credentials.NewStaticCredentials(
-			r.awsAccessKeyId,
-			r.awsSecretAccessKey,
+			s.awsAccessKeyId,
+			s.awsSecretAccessKey,
 			"",
 		),
 	})))
 
 }
 
-func (r *Request) sendMail() error {
-	return r.newSesClient().SendSesEmail(*r)
+func (s *Client) sendMail(e *EmailData) error {
+	return s.newSesClient().SendSesEmail(e)
 }
