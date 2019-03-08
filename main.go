@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"github.com/evzpav/aws-ses-go-example/ses"
+
+	"github.com/evzpav/aws-ses-go/ses"
+	"github.com/joho/godotenv"
 )
 
 var senderEmail string
@@ -33,11 +34,16 @@ func main() {
 		"supportEmail": senderEmail,
 	}
 
-	subject := "My email subject"
-	noReplyEmail := "noreply@domain.com"
-	r := ses.NewRequest(senderEmail, noReplyEmail, []string{receiverEmail}, subject)
-	r = r.SetAwsCredentials(awsRegion, awsAccessKeyId, awsSecretAccessKey)
-	err := r.Send("email_template.html", vars)
+	s := ses.NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey)
+	var emailData = ses.EmailData{
+		From:         senderEmail,
+		To:           []string{receiverEmail},
+		ReplyTo:      []string{"noreply@domain.com"},
+		Subject:      "My email subject",
+		TemplateName: "email_template.html",
+		TemplateVars: vars,
+	}
+	err := s.Send(emailData)
 
 	if err != nil {
 		log.Println(err)

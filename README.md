@@ -1,4 +1,4 @@
-# aws-ses-go-example
+# aws-ses-go
 
 ## Example how to use AWS SES with Golang
 
@@ -9,14 +9,13 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"github.com/evzpav/aws-ses-go-example/ses"
+
+	"github.com/evzpav/aws-ses-go/ses"
+	"github.com/joho/godotenv"
 )
 
-var senderEmail string
-var receiverEmail string
 var awsRegion string
 var awsAccessKeyId string
 var awsSecretAccessKey string
@@ -26,31 +25,37 @@ func init() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	senderEmail = os.Getenv("SENDER_EMAIL")
-	receiverEmail = os.Getenv("RECEIVER_EMAIL")
 	awsRegion = os.Getenv("AWS_REGION")
 	awsAccessKeyId = os.Getenv("AWS_ACCESS_KEY_ID")
 	awsSecretAccessKey = os.Getenv("AWS_SECRET_ACCESS_KEY")
 }
 
 func main() {
-
+    senderEmail := "sender@domain.com"
+	receiverEmail := "receiver@domain.com"
+	
 	vars := map[string]string{ //variables that will go to HTML template
 		"name":         "evzpav",
 		"userID":       "123456",
 		"supportEmail": senderEmail,
 	}
 
-	subject := "My email subject"
-	noReplyEmail := "noreply@domain.com"
-	r := ses.NewRequest(senderEmail, noReplyEmail, []string{receiverEmail}, subject)
-	r = r.SetAwsCredentials(awsRegion, awsAccessKeyId, awsSecretAccessKey)
-	err := r.Send("email_template.html", vars)
+	s := ses.NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey)
+	var emailData = ses.EmailData{
+		From:         senderEmail,
+		To:           []string{receiverEmail},
+		ReplyTo:      []string{"noreply@domain.com"},
+		Subject:      "My email subject",
+		TemplateName: "email_template.html",
+		TemplateVars: vars,
+	}
+	err := s.Send(emailData)
 
 	if err != nil {
 		log.Println(err)
 	}
 }
+
 
 
 ```
@@ -62,6 +67,6 @@ cp .env_example .env
 
 go build
 
-./aws-ses-go-example
+./aws-ses-go
 
 ```
