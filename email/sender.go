@@ -20,13 +20,16 @@ type Client struct {
 type EmailData struct {
 	From         string
 	To           []string
+	CC           []string
+	BCC          []string
+	ReplyTo      []string
 	Subject      string
-	Body         string
 	Text         string
 	HTML         string
-	ReplyTo      []string
 	TemplateName string
 	TemplateVars interface{}
+	AttachFiles  []string
+	ConfigSet    string
 }
 
 func NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey string) *Client {
@@ -37,21 +40,39 @@ func NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey string) *Client {
 	}
 }
 
-func (s *Client) Send(e EmailData) error {
-	err := e.parseTemplate()
+//Send email based on HTML template
+func (s *Client) Send(mail EmailData) error {
+	err := mail.parseTemplate()
 	if err != nil {
-		log.Printf("Could not parse email template: %s\n", e.TemplateName)
+		log.Printf("Could not parse email template: %s\n", mail.TemplateName)
 		return err
 	}
-	err = s.sendMail(&e)
+	err = s.sendMail(&mail)
 	if err != nil {
-		log.Printf("Failed to send '%s' the email to %s\n", e.Subject, e.To)
+		log.Printf("Failed to send '%s' the email to %s\n", mail.Subject, mail.To)
 		return err
 	}
-	log.Printf("Email '%s' has been sent to %s\n", e.Subject, e.To)
+	log.Printf("Email '%s' has been sent to %s\n", mail.Subject, mail.To)
 	return nil
 }
 
+//SendRaw email based on HTML template with attachment
+func (s *Client) SendRaw(mail EmailData) error {
+	err := mail.parseTemplate()
+	if err != nil {
+		log.Printf("Could not parse raw email template: %s\n", mail.TemplateName)
+		return err
+	}
+	err = s.sendRawMail(&mail)
+	if err != nil {
+		log.Printf("Failed to send '%s' the raw email to %s\n", mail.Subject, mail.To)
+		return err
+	}
+	log.Printf("Email Raw '%s' has been sent to %s\n", mail.Subject, mail.To)
+	return nil
+}
+
+// parseTemplate HTML with provided variables
 func (e *EmailData) parseTemplate() error {
 	t, err := template.ParseFiles(e.TemplateName)
 	if err != nil {
@@ -77,6 +98,10 @@ func (s *Client) newSesClient() *SesClient {
 
 }
 
-func (s *Client) sendMail(e *EmailData) error {
-	return s.newSesClient().SendSesEmail(e)
+func (s *Client) sendMail(mail *EmailData) error {
+	return s.newSesClient().SendSesEmail(mail)
+}
+
+func (s *Client) sendRawMail(mail *EmailData) error {
+	return s.newSesClient().SendSesRawEmail(mail)
 }

@@ -1,3 +1,5 @@
 .idea
 .env
 aws-ses-go-example
+example-data/
+vendor/gopkg.in/

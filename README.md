@@ -1,6 +1,6 @@
 # aws-ses-go
 
-## Example how to use AWS SES with Golang
+## AWS SES with Golang package. Parses HTML templates with dynamic variables and with attachment files.
 
 
 ### Usage example:
@@ -38,11 +38,13 @@ func main() {
 
 	vars := map[string]string{ //variables that will go to HTML template
 		"name":         "evzpav",
-		"userID":       "123456",
+		"info":       "123456",
 		"supportEmail": senderEmail,
 	}
 
 	s := email.NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey)
+	
+	//email based on HTML template
 	var emailData = email.EmailData{
 		From:         senderEmail,
 		To:           []string{receiverEmail},
@@ -56,9 +58,24 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+
+	//email based on HTML template with attachment
+	var emailWithAttachment = email.EmailData{
+		From:         senderEmail,
+		To:           []string{receiverEmail},
+		ReplyTo:      []string{"noreply@domain.com"},
+		Subject:      "My email subject",
+		TemplateName: "email_template.html",
+		TemplateVars: vars,
+		AttachFiles: []string{"attachment-example/attachment.pdf",
+			"attachment-example/attachment.txt"},
+	}
+	err = s.SendRaw(emailWithAttachment)
+
+	if err != nil {
+		log.Println(err)
+	}
 }
-
-
 
 ```
 
