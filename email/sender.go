@@ -18,18 +18,19 @@ type Client struct {
 }
 
 type EmailData struct {
-	From         string
-	To           []string
-	CC           []string
-	BCC          []string
-	ReplyTo      []string
-	Subject      string
-	Text         string
-	HTML         string
-	TemplateName string
-	TemplateVars interface{}
-	AttachFiles  []string
-	ConfigSet    string
+	From           string
+	To             []string
+	CC             []string
+	BCC            []string
+	ReplyTo        []string
+	Subject        string
+	Text           string
+	HTML           string
+	TemplateName   string
+	TemplateVars   interface{}
+	AttachFiles    []string
+	ConfigSet      string
+	BaseLayoutPath string
 }
 
 func NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey string) *Client {
@@ -63,6 +64,7 @@ func (s *Client) SendRaw(mail EmailData) error {
 		log.Printf("Could not parse raw email template: %s\n", mail.TemplateName)
 		return err
 	}
+
 	err = s.sendRawMail(&mail)
 	if err != nil {
 		log.Printf("Failed to send '%s' the raw email to %s\n", mail.Subject, mail.To)
@@ -73,16 +75,22 @@ func (s *Client) SendRaw(mail EmailData) error {
 }
 
 // parseTemplate HTML with provided variables
-func (e *EmailData) parseTemplate() error {
-	t, err := template.ParseFiles(e.TemplateName)
+func (mail *EmailData) parseTemplate() error {
+	var t *template.Template
+	var err error
+
+	if mail.BaseLayoutPath != "" {
+		t, err = template.ParseFiles(mail.BaseLayoutPath, mail.TemplateName)
+	}
+	t, err = template.ParseFiles(mail.TemplateName)
 	if err != nil {
 		return err
 	}
 	buffer := new(bytes.Buffer)
-	if err = t.Execute(buffer, e.TemplateVars); err != nil {
+	if err = t.Execute(buffer, mail.TemplateVars); err != nil {
 		return err
 	}
-	e.HTML = buffer.String()
+	mail.HTML = buffer.String()
 	return nil
 }
 
