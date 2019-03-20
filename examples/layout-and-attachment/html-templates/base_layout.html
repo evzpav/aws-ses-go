@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Project</title>
+</head>
+
+<body>
+    <table style="width: 100%; max-width: 600px; margin: auto; border-top: 20px solid darkgreen;
+    background: #FAFAFA; font-family: Verdana, Arial, sans-serif; color: #333; font-size: 14px;">
+
+        {{ template "action" . }}
+
+        <tr>
+            <td class="important" style="border-top: 1px solid #ccc; padding: 30px 30px;">
+
+                <p><b>Important:</b></p>
+                <p>Please remember to use a secure email address.
+                    We advise to create and use an email address solely for use at My Project.
+                    If you think your email has been compromised, contact us immediately at <b>{{ .supportEmail }}</b>
+                </p>
+
+            </td>
+        </tr>
+
+        <tr>
+            <td class="footer" style="background: darkgreen; padding: 10px 30px; color: #fff; font-size: 12px;">
+                <p>If you found this message on your spam folder, please move to your inbox and/or mark as non-spam.
+                    This way, you will not miss on important notifications.</p>
+            </td>
+        </tr>
+
+
+    </table>
+
+</body>
+
+</html>

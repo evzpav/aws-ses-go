@@ -1,0 +1,22 @@
+{{define "action"}}
+
+<tr>
+    <td class="title-action-wrapper" style="text-align: center; padding: 30px 30px 0px 30px">
+        <h1 style="font-weight: normal; font-size: 22px; color: green;">Registration</h1>
+    </td>
+</tr>
+
+<tr>
+    <td class="content" style="padding: 30px 30px;">
+        <p> Hello <b>{{ .name }}</b>, </p> <br/>
+        <p> You have been registered. You info: <b>{{ .info }}</b>. </p>
+
+        <p>Regards,<br><br>
+            <br><br>
+            <a style="color: darkgreen">{{ .supportEmail }}</a>
+        </p>
+    </td>
+</tr>
+
+
+{{end}}

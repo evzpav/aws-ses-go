@@ -36,14 +36,23 @@ func main() {
 
 	s := email.NewClient(awsRegion, awsAccessKeyId, awsSecretAccessKey)
 
+	var baseLayoutVars = map[string]string{
+		"supportEmail": senderEmail,
+	}
+
+	for k, v := range baseLayoutVars {
+		vars[k] = v
+	}
+
 	//email based on HTML template
 	var emailData = email.EmailData{
-		From:         senderEmail,
-		To:           []string{receiverEmail},
-		ReplyTo:      []string{"noreply@domain.com"},
-		Subject:      "My email subject",
-		TemplateName: "email_template.html",
-		TemplateVars: vars,
+		From:           senderEmail,
+		To:             []string{receiverEmail},
+		ReplyTo:        []string{"noreply@domain.com"},
+		Subject:        "My email subject",
+		TemplateName:   "examples/layout-and-attachment/html-templates/registration.html",
+		TemplateVars:   vars,
+		BaseLayoutPath: "examples/layout-and-attachment/html-templates/base_layout.html",
 	}
 	err := s.Send(emailData)
 
@@ -59,8 +68,8 @@ func main() {
 		Subject:      "My email subject",
 		TemplateName: "email_template.html",
 		TemplateVars: vars,
-		AttachFiles: []string{"attachment-example/attachment.pdf",
-			"attachment-example/attachment.txt"},
+		AttachFiles: []string{"examples/layout-and-attachment/attachment-example/attachment.pdf",
+			"examples/layout-and-attachment/attachment-example/attachment.txt"},
 	}
 	err = s.SendRaw(emailWithAttachment)
 
