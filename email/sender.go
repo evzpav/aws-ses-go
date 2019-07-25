@@ -81,8 +81,10 @@ func (mail *EmailData) parseTemplate() error {
 
 	if mail.BaseLayoutPath != "" {
 		t, err = template.ParseFiles(mail.BaseLayoutPath, mail.TemplateName)
-	} else {
+	} else if mail.TemplateName != "" {
 		t, err = template.ParseFiles(mail.TemplateName)
+	} else {
+		return nil
 	}
 
 	if err != nil {
